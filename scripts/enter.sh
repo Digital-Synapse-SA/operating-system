@@ -23,4 +23,8 @@ sudo losetup -f > /dev/null
 sudo docker run -it --rm --privileged \
   -v "$(pwd):/build" -v "${CACHE_DIR}:/cache" \
   -e BUILDER_UID="${BUILDER_UID}" -e BUILDER_GID="${BUILDER_GID}" \
+  -e GOPROXY=https://proxy.golang.org,direct \
+  -e GOSUMDB=sum.golang.org \
+  -e GOPRIVATE=* \
+  --dns 8.8.8.8 --dns 8.8.4.4 \
   hassos:local ${COMMAND}

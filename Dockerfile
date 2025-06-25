@@ -3,6 +3,12 @@ FROM debian:bullseye
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Set Go environment variables
+ENV GOPROXY=https://proxy.golang.org,direct
+ENV GOSUMDB=sum.golang.org
+ENV GOPRIVATE=*
+ENV GO111MODULE=on
+
 # Docker
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-transport-https \
@@ -51,7 +57,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         vim \
         wget \
         zip \
+        golang-go \
+        dnsutils \
+        iputils-ping \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure DNS for better connectivity
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && \
+    echo "nameserver 8.8.4.4" >> /etc/resolv.conf
 
 # Init entry
 COPY scripts/entry.sh /usr/sbin/

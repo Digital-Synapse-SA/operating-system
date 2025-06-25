@@ -14,8 +14,8 @@ HASSIO_VERSION_URL = "https://version.home-assistant.io/"
 # Custom branding configuration
 BR2_PACKAGE_HASSIO_CUSTOM_BRANDING ?= y
 ifeq ($(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING),y)
-HASSIO_CUSTOM_CORE_REPO ?= "https://github.com/wissamhamdach/core.git"
-HASSIO_CUSTOM_FRONTEND_REPO ?= "https://github.com/wissamhamdach/frontend.git"
+HASSIO_CUSTOM_CORE_REPO ?= "https://github.com/Digital-Synapse-SA/core.git"
+HASSIO_CUSTOM_FRONTEND_REPO ?= "https://github.com/Digital-Synapse-SA/frontend.git"
 HASSIO_CUSTOM_CORE_BRANCH ?= "ST-Branding-Stage1"
 HASSIO_CUSTOM_FRONTEND_BRANCH ?= "ST-Branding-Stage1"
 endif
@@ -33,7 +33,7 @@ HASSIO_CONTAINER_IMAGES_ARCH = supervisor dns audio cli multicast observer core
 define HASSIO_CONFIGURE_CMDS
 ifeq ($(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING),y)
 	# Use custom branding - build core from source
-	@echo "Using custom Smartelligent branding..."
+	@echo "Using custom smarTelligent branding..."
 	# Create custom version.json with custom core
 	curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" | \
 		jq '.core = "smartelligent_core_latest"' > $(@D)/version.json
