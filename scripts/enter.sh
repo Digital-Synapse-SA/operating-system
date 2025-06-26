@@ -26,5 +26,4 @@ sudo docker run -it --rm --privileged \
   -e GOPROXY=https://proxy.golang.org,direct \
   -e GOSUMDB=sum.golang.org \
   -e GOPRIVATE=* \
-  --dns 8.8.8.8 --dns 8.8.4.4 \
   hassos:local ${COMMAND}
