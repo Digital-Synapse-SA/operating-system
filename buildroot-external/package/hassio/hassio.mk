@@ -42,16 +42,19 @@ endef
 define HASSIO_BUILD_CMDS
 	$(Q)mkdir -p $(@D)/images
 	$(Q)mkdir -p $(HASSIO_DL_DIR)
-	if [ "$(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING)" = "y" ]; then \
-		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-custom-core.sh "$(@D)" "$(BR2_PACKAGE_HASSIO_ARCH)" "$(BR2_PACKAGE_HASSIO_MACHINE)"; \
+	ifeq ($(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING),y)
+		# Build custom core and frontend
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-custom-core.sh "$(@D)" "$(BR2_PACKAGE_HASSIO_ARCH)" "$(BR2_PACKAGE_HASSIO_MACHINE)"
+		# Fetch other container images normally
 		$(foreach image,supervisor dns audio cli multicast observer,\
 			$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"; \
-		); \
-	else \
+		)
+	else
+		# Fetch all container images normally
 		$(foreach image,$(HASSIO_CONTAINER_IMAGES_ARCH),\
 			$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"; \
-		); \
-	fi
+		)
+	endif
 endef
 
 HASSIO_INSTALL_IMAGES = YES
