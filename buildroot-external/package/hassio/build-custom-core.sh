@@ -37,6 +37,7 @@ CMD ["sh", "-c", "echo 'smarTelligent Core Running' && sleep infinity"]
 EOF
         
         docker build -t smartelligent/core:latest /tmp/
+        docker tag smartelligent/core:latest smartelligent/core:smartelligent_core_latest
         docker save smartelligent/core:latest | gzip > "${BUILD_DIR}/images/smartelligent_core_latest.tar.gz"
         echo "Fallback smarTelligent system created successfully!"
         exit 0
@@ -121,6 +122,10 @@ cp -r "${BUILD_DIR}/custom-frontend/dist" ./frontend_dist
 # Build final Core image with custom frontend
 echo "Building final Core image with custom frontend..."
 docker build -t smartelligent/core:latest --build-arg FRONTEND_DIR=./frontend_dist .
+
+# Tag the image with the version the supervisor expects
+echo "Tagging custom image for supervisor use..."
+docker tag smartelligent/core:latest smartelligent/core:smartelligent_core_latest
 
 # Save the custom image
 echo "Saving custom image..."

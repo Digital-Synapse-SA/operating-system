@@ -26,6 +26,15 @@ supervisor=$(docker images --filter "label=io.hass.type=supervisor" --quiet)
 arch=$(docker inspect --format '{{ index .Config.Labels "io.hass.arch" }}' "${supervisor}")
 docker tag "${supervisor}" "ghcr.io/home-assistant/${arch}-hassio-supervisor:latest"
 
+# Check for custom smarTelligent core image and tag it properly
+CUSTOM_CORE_IMAGE="smartelligent/core:latest"
+if docker images --no-trunc --filter "reference=${CUSTOM_CORE_IMAGE}" --format "{{.ID}}" | grep -q .; then
+    echo "[INFO] Found custom smarTelligent core image, tagging for supervisor use..."
+    # Tag the custom core image so the supervisor can find it
+    docker tag "${CUSTOM_CORE_IMAGE}" "smartelligent/core:smartelligent_core_latest"
+    echo "[INFO] Custom smarTelligent core image tagged as smartelligent/core:smartelligent_core_latest"
+fi
+
 # Setup AppArmor
 mkdir -p "/data/supervisor/apparmor"
 wget -O "/data/supervisor/apparmor/hassio-supervisor" "${APPARMOR_URL}"
