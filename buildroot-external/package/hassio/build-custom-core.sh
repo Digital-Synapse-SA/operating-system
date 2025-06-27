@@ -64,6 +64,11 @@ fi
 # Build Core Docker image (if Dockerfile exists)
 if [ -f "Dockerfile" ]; then
     echo "Building Core Docker image..."
+    # Check if Dockerfile uses BUILD_FROM and fix it if needed
+    if grep -q "BUILD_FROM" Dockerfile; then
+        echo "Fixing BUILD_FROM in Dockerfile..."
+        sed -i 's/\${BUILD_FROM}/python:3.11-slim/g' Dockerfile
+    fi
     docker build -t smartelligent/core:latest .
 else
     echo "WARNING: No Dockerfile found in core. Creating minimal image..."

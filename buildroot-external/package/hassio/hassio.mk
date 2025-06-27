@@ -34,10 +34,14 @@ define HASSIO_CONFIGURE_CMDS
 	if [ "$(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING)" = "y" ]; then \
 		echo "Using custom smarTelligent branding..."; \
 		echo "Fetching version info from $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL).json"; \
-		curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" > /tmp/version_raw.json; \
-		echo "Raw version data:"; \
-		cat /tmp/version_raw.json; \
-		jq '.core = "smartelligent_core_latest"' /tmp/version_raw.json > $(@D)/version.json; \
+		if curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" > /tmp/version_raw.json; then \
+			echo "Raw version data:"; \
+			cat /tmp/version_raw.json; \
+			jq '.core = "smartelligent_core_latest"' /tmp/version_raw.json > $(@D)/version.json; \
+		else \
+			echo "ERROR: Failed to fetch version data. Creating fallback version.json..."; \
+			echo '{"core": "smartelligent_core_latest", "supervisor": "latest", "dns": "latest", "audio": "latest", "cli": "latest", "multicast": "latest", "observer": "latest", "images": {"supervisor": "ghcr.io/home-assistant/{arch}-hassio-supervisor", "dns": "ghcr.io/home-assistant/{arch}-hassio-dns", "audio": "ghcr.io/home-assistant/{arch}-hassio-audio", "cli": "ghcr.io/home-assistant/{arch}-hassio-cli", "multicast": "ghcr.io/home-assistant/{arch}-hassio-multicast", "observer": "ghcr.io/home-assistant/{arch}-hassio-observer"}}' > $(@D)/version.json; \
+		fi; \
 		echo "Created version.json with content:"; \
 		cat $(@D)/version.json; \
 		echo "Testing jq extraction for supervisor:"; \
