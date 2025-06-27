@@ -21,7 +21,23 @@ if docker images --no-trunc --filter "reference=${CUSTOM_CORE_IMAGE}" --format "
     # Create a custom version.json that points to our local image
     mkdir -p "${SUPERVISOR_DATA}"
     echo '{"core": "smartelligent_core_latest", "supervisor": "latest", "dns": "latest", "audio": "latest", "cli": "latest", "multicast": "latest", "observer": "latest", "images": {"core": "smartelligent/core", "supervisor": "ghcr.io/home-assistant/{arch}-hassio-supervisor", "dns": "ghcr.io/home-assistant/{arch}-hassio-dns", "audio": "ghcr.io/home-assistant/{arch}-hassio-audio", "cli": "ghcr.io/home-assistant/{arch}-hassio-cli", "multicast": "ghcr.io/home-assistant/{arch}-hassio-multicast", "observer": "ghcr.io/home-assistant/{arch}-hassio-observer"}}' > "${SUPERVISOR_DATA}/version.json"
-    echo "[INFO] Custom version.json created for smarTelligent branding"
+    
+    # Pre-configure Home Assistant to use our custom image
+    # The supervisor expects this structure in /data/homeassistant.json
+    cat > "${SUPERVISOR_DATA}/homeassistant.json" << 'EOF'
+{
+  "image": "smartelligent/core",
+  "version": "smartelligent_core_latest",
+  "override_image": true,
+  "port": 8123,
+  "ssl": false,
+  "watchdog": true,
+  "boot": true,
+  "uuid": "00000000-0000-0000-0000-000000000000"
+}
+EOF
+    
+    echo "[INFO] Custom version.json and Home Assistant config created for smarTelligent branding"
 fi
 
 SUPERVISOR_IMAGE_ID=$(docker images --no-trunc --filter "reference=${SUPERVISOR_IMAGE}:latest" --format "{{.ID}}" || echo "")
