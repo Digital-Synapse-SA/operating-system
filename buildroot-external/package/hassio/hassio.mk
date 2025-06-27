@@ -33,7 +33,15 @@ HASSIO_CONTAINER_IMAGES_ARCH = supervisor dns audio cli multicast observer core
 define HASSIO_CONFIGURE_CMDS
 	if [ "$(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING)" = "y" ]; then \
 		echo "Using custom smarTelligent branding..."; \
-		curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" | jq '.core = "smartelligent_core_latest"' > $(@D)/version.json; \
+		echo "Fetching version info from $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL).json"; \
+		curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" > /tmp/version_raw.json; \
+		echo "Raw version data:"; \
+		cat /tmp/version_raw.json; \
+		jq '.core = "smartelligent_core_latest"' /tmp/version_raw.json > $(@D)/version.json; \
+		echo "Created version.json with content:"; \
+		cat $(@D)/version.json; \
+		echo "Testing jq extraction for supervisor:"; \
+		jq -e -r --arg image_json_name "supervisor" --arg arch "amd64" --arg machine "generic-x86-64" '.images[$image_json_name] | sub("{arch}"; $arch) | sub("{machine}"; $machine)' $(@D)/version.json || echo "ERROR: Failed to extract supervisor image name"; \
 	else \
 		curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" | jq '.core = "landingpage"' > $(@D)/version.json; \
 	fi
