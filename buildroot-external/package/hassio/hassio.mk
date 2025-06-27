@@ -42,19 +42,26 @@ endef
 define HASSIO_BUILD_CMDS
 	$(Q)mkdir -p $(@D)/images
 	$(Q)mkdir -p $(HASSIO_DL_DIR)
-	ifeq ($(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING),y)
-		# Build custom core and frontend
-		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-custom-core.sh "$(@D)" "$(BR2_PACKAGE_HASSIO_ARCH)" "$(BR2_PACKAGE_HASSIO_MACHINE)"
-		# Fetch other container images normally
-		$(foreach image,supervisor dns audio cli multicast observer,\
-			$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"; \
-		)
-	else
-		# Fetch all container images normally
-		$(foreach image,$(HASSIO_CONTAINER_IMAGES_ARCH),\
-			$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"; \
-		)
-	endif
+	if [ "$(BR2_PACKAGE_HASSIO_CUSTOM_BRANDING)" = "y" ]; then \
+		echo "Building custom smarTelligent core and frontend..."; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-custom-core.sh "$(@D)" "$(BR2_PACKAGE_HASSIO_ARCH)" "$(BR2_PACKAGE_HASSIO_MACHINE)"; \
+		echo "Fetching other container images..."; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json supervisor "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json dns "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json audio "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json cli "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json multicast "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json observer "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+	else \
+		echo "Fetching all container images normally..."; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json supervisor "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json dns "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json audio "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json cli "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json multicast "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json observer "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh $(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json core "$(HASSIO_DL_DIR)" "$(@D)/images"; \
+	fi
 endef
 
 HASSIO_INSTALL_IMAGES = YES
