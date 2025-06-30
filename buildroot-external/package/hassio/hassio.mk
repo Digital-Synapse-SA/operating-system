@@ -47,42 +47,39 @@ define HASSIO_CONFIGURE_CMDS
 	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/load-smartelligent-config.sh
 	
 	# Create custom version.json with Smartelligent containers
-	cat > $(@D)/version.json << 'EOF'
-{
-  "supervisor": "smartelligent/supervisor:latest",
-  "core": "smartelligent/core:latest"
-}
-EOF
+	echo '{' > $(@D)/version.json
+	echo '  "supervisor": "smartelligent/supervisor:latest",' >> $(@D)/version.json
+	echo '  "core": "smartelligent/core:latest"' >> $(@D)/version.json
 
 	# Add supporting containers based on configuration
 ifeq ($(SMARTELLIGENT_USE_CUSTOM_DNS),y)
-	echo '  "dns": "smartelligent/dns:latest",' >> $(@D)/version.json
+	echo '  ,"dns": "smartelligent/dns:latest"' >> $(@D)/version.json
 else
-	echo '  "dns": "ghcr.io/home-assistant/amd64-hassio-dns:latest",' >> $(@D)/version.json
+	echo '  ,"dns": "ghcr.io/home-assistant/amd64-hassio-dns:latest"' >> $(@D)/version.json
 endif
 
 ifeq ($(SMARTELLIGENT_USE_CUSTOM_AUDIO),y)
-	echo '  "audio": "smartelligent/audio:latest",' >> $(@D)/version.json
+	echo '  ,"audio": "smartelligent/audio:latest"' >> $(@D)/version.json
 else
-	echo '  "audio": "ghcr.io/home-assistant/amd64-hassio-audio:latest",' >> $(@D)/version.json
+	echo '  ,"audio": "ghcr.io/home-assistant/amd64-hassio-audio:latest"' >> $(@D)/version.json
 endif
 
 ifeq ($(SMARTELLIGENT_USE_CUSTOM_CLI),y)
-	echo '  "cli": "smartelligent/cli:latest",' >> $(@D)/version.json
+	echo '  ,"cli": "smartelligent/cli:latest"' >> $(@D)/version.json
 else
-	echo '  "cli": "ghcr.io/home-assistant/amd64-hassio-cli:latest",' >> $(@D)/version.json
+	echo '  ,"cli": "ghcr.io/home-assistant/amd64-hassio-cli:latest"' >> $(@D)/version.json
 endif
 
 ifeq ($(SMARTELLIGENT_USE_CUSTOM_MULTICAST),y)
-	echo '  "multicast": "smartelligent/multicast:latest",' >> $(@D)/version.json
+	echo '  ,"multicast": "smartelligent/multicast:latest"' >> $(@D)/version.json
 else
-	echo '  "multicast": "ghcr.io/home-assistant/amd64-hassio-multicast:latest",' >> $(@D)/version.json
+	echo '  ,"multicast": "ghcr.io/home-assistant/amd64-hassio-multicast:latest"' >> $(@D)/version.json
 endif
 
 ifeq ($(SMARTELLIGENT_USE_CUSTOM_OBSERVER),y)
-	echo '  "observer": "smartelligent/observer:latest"' >> $(@D)/version.json
+	echo '  ,"observer": "smartelligent/observer:latest"' >> $(@D)/version.json
 else
-	echo '  "observer": "ghcr.io/home-assistant/amd64-hassio-observer:latest"' >> $(@D)/version.json
+	echo '  ,"observer": "ghcr.io/home-assistant/amd64-hassio-observer:latest"' >> $(@D)/version.json
 endif
 
 	echo '}' >> $(@D)/version.json
