@@ -42,6 +42,41 @@ SMARTELLIGENT_CLI_REPO ?= ""
 SMARTELLIGENT_MULTICAST_REPO ?= ""
 SMARTELLIGENT_OBSERVER_REPO ?= ""
 
+# Define DNS configuration
+ifeq ($(SMARTELLIGENT_USE_CUSTOM_DNS),y)
+HASSIO_DNS_IMAGE = "smartelligent/dns:latest"
+else
+HASSIO_DNS_IMAGE = "ghcr.io/home-assistant/amd64-hassio-dns:latest"
+endif
+
+# Define Audio configuration
+ifeq ($(SMARTELLIGENT_USE_CUSTOM_AUDIO),y)
+HASSIO_AUDIO_IMAGE = "smartelligent/audio:latest"
+else
+HASSIO_AUDIO_IMAGE = "ghcr.io/home-assistant/amd64-hassio-audio:latest"
+endif
+
+# Define CLI configuration
+ifeq ($(SMARTELLIGENT_USE_CUSTOM_CLI),y)
+HASSIO_CLI_IMAGE = "smartelligent/cli:latest"
+else
+HASSIO_CLI_IMAGE = "ghcr.io/home-assistant/amd64-hassio-cli:latest"
+endif
+
+# Define Multicast configuration
+ifeq ($(SMARTELLIGENT_USE_CUSTOM_MULTICAST),y)
+HASSIO_MULTICAST_IMAGE = "smartelligent/multicast:latest"
+else
+HASSIO_MULTICAST_IMAGE = "ghcr.io/home-assistant/amd64-hassio-multicast:latest"
+endif
+
+# Define Observer configuration
+ifeq ($(SMARTELLIGENT_USE_CUSTOM_OBSERVER),y)
+HASSIO_OBSERVER_IMAGE = "smartelligent/observer:latest"
+else
+HASSIO_OBSERVER_IMAGE = "ghcr.io/home-assistant/amd64-hassio-observer:latest"
+endif
+
 define HASSIO_CONFIGURE_CMDS
 	# Load configuration and validate
 	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/load-smartelligent-config.sh
@@ -49,39 +84,12 @@ define HASSIO_CONFIGURE_CMDS
 	# Create custom version.json with Smartelligent containers
 	echo '{' > $(@D)/version.json
 	echo '  "supervisor": "smartelligent/supervisor:latest",' >> $(@D)/version.json
-	echo '  "core": "smartelligent/core:latest"' >> $(@D)/version.json
-
-	# Add supporting containers based on configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_DNS),y)
-	echo '  ,"dns": "smartelligent/dns:latest"' >> $(@D)/version.json
-else
-	echo '  ,"dns": "ghcr.io/home-assistant/amd64-hassio-dns:latest"' >> $(@D)/version.json
-endif
-
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_AUDIO),y)
-	echo '  ,"audio": "smartelligent/audio:latest"' >> $(@D)/version.json
-else
-	echo '  ,"audio": "ghcr.io/home-assistant/amd64-hassio-audio:latest"' >> $(@D)/version.json
-endif
-
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_CLI),y)
-	echo '  ,"cli": "smartelligent/cli:latest"' >> $(@D)/version.json
-else
-	echo '  ,"cli": "ghcr.io/home-assistant/amd64-hassio-cli:latest"' >> $(@D)/version.json
-endif
-
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_MULTICAST),y)
-	echo '  ,"multicast": "smartelligent/multicast:latest"' >> $(@D)/version.json
-else
-	echo '  ,"multicast": "ghcr.io/home-assistant/amd64-hassio-multicast:latest"' >> $(@D)/version.json
-endif
-
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_OBSERVER),y)
-	echo '  ,"observer": "smartelligent/observer:latest"' >> $(@D)/version.json
-else
-	echo '  ,"observer": "ghcr.io/home-assistant/amd64-hassio-observer:latest"' >> $(@D)/version.json
-endif
-
+	echo '  "core": "smartelligent/core:latest",' >> $(@D)/version.json
+	echo '  "dns": "$(HASSIO_DNS_IMAGE)",' >> $(@D)/version.json
+	echo '  "audio": "$(HASSIO_AUDIO_IMAGE)",' >> $(@D)/version.json
+	echo '  "cli": "$(HASSIO_CLI_IMAGE)",' >> $(@D)/version.json
+	echo '  "multicast": "$(HASSIO_MULTICAST_IMAGE)",' >> $(@D)/version.json
+	echo '  "observer": "$(HASSIO_OBSERVER_IMAGE)"' >> $(@D)/version.json
 	echo '}' >> $(@D)/version.json
 endef
 
