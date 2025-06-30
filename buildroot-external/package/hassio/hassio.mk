@@ -85,11 +85,11 @@ define HASSIO_CONFIGURE_CMDS
 	echo '{' > $(@D)/version.json
 	echo '  "supervisor": "smartelligent/supervisor:latest",' >> $(@D)/version.json
 	echo '  "core": "smartelligent/core:latest",' >> $(@D)/version.json
-	echo '  "dns": "$(HASSIO_DNS_IMAGE)",' >> $(@D)/version.json
-	echo '  "audio": "$(HASSIO_AUDIO_IMAGE)",' >> $(@D)/version.json
-	echo '  "cli": "$(HASSIO_CLI_IMAGE)",' >> $(@D)/version.json
-	echo '  "multicast": "$(HASSIO_MULTICAST_IMAGE)",' >> $(@D)/version.json
-	echo '  "observer": "$(HASSIO_OBSERVER_IMAGE)"' >> $(@D)/version.json
+	echo '  "dns": $(HASSIO_DNS_IMAGE),' >> $(@D)/version.json
+	echo '  "audio": $(HASSIO_AUDIO_IMAGE),' >> $(@D)/version.json
+	echo '  "cli": $(HASSIO_CLI_IMAGE),' >> $(@D)/version.json
+	echo '  "multicast": $(HASSIO_MULTICAST_IMAGE),' >> $(@D)/version.json
+	echo '  "observer": $(HASSIO_OBSERVER_IMAGE)' >> $(@D)/version.json
 	echo '}' >> $(@D)/version.json
 endef
 

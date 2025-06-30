@@ -1,34 +1,45 @@
 #!/usr/bin/env bash
 
 set -e
-set -u
 set -o pipefail
 
 # Script to build custom Smartelligent containers from Digital-Synapse-SA repositories
 # Now supports variable repositories for all containers with fallback options
 
 # Main component repositories
-CORE_REPO="$1"
-FRONTEND_REPO="$2"
-SUPERVISOR_REPO="$3"
+CORE_REPO="${1:-}"
+FRONTEND_REPO="${2:-}"
+SUPERVISOR_REPO="${3:-}"
 
 # Supporting component repositories
-DNS_REPO="$4"
-AUDIO_REPO="$5"
-CLI_REPO="$6"
-MULTICAST_REPO="$7"
-OBSERVER_REPO="$8"
+DNS_REPO="${4:-}"
+AUDIO_REPO="${5:-}"
+CLI_REPO="${6:-}"
+MULTICAST_REPO="${7:-}"
+OBSERVER_REPO="${8:-}"
 
 # Configuration flags for each container
-USE_CUSTOM_DNS="$9"
-USE_CUSTOM_AUDIO="${10}"
-USE_CUSTOM_CLI="${11}"
-USE_CUSTOM_MULTICAST="${12}"
-USE_CUSTOM_OBSERVER="${13}"
+USE_CUSTOM_DNS="${9:-n}"
+USE_CUSTOM_AUDIO="${10:-n}"
+USE_CUSTOM_CLI="${11:-n}"
+USE_CUSTOM_MULTICAST="${12:-n}"
+USE_CUSTOM_OBSERVER="${13:-n}"
 
 # Build directories
-IMAGES_DIR="${14}"
-DL_DIR="${15}"
+IMAGES_DIR="${14:-}"
+DL_DIR="${15:-}"
+
+# Validate required parameters
+if [ -z "$CORE_REPO" ] || [ -z "$FRONTEND_REPO" ] || [ -z "$SUPERVISOR_REPO" ]; then
+    echo "Error: Required repository URLs not provided"
+    echo "Usage: $0 <core_repo> <frontend_repo> <supervisor_repo> <dns_repo> <audio_repo> <cli_repo> <multicast_repo> <observer_repo> <use_custom_dns> <use_custom_audio> <use_custom_cli> <use_custom_multicast> <use_custom_observer> <images_dir> <dl_dir>"
+    exit 1
+fi
+
+if [ -z "$IMAGES_DIR" ] || [ -z "$DL_DIR" ]; then
+    echo "Error: Required directories not provided"
+    exit 1
+fi
 
 BUILD_DIR="/tmp/smartelligent-build"
 CACHE_DIR="$DL_DIR/smartelligent-cache"
@@ -63,7 +74,7 @@ build_container() {
         else
             cd "$BUILD_DIR/$container_name"
             git pull origin main
-            cd - > /dev/null
+            cd - > /dev/null 2>&1 || true
         fi
         
         # Build container
@@ -88,7 +99,7 @@ build_container() {
         docker save "smartelligent/$container_name:latest" > "$tar_file"
         
         echo "  Saved custom $container_name to $tar_file"
-        cd - > /dev/null
+        cd - > /dev/null 2>&1 || true
     else
         echo "  Using standard container for $container_name"
         build_standard_container "$container_name"
