@@ -57,6 +57,36 @@ mkdir -p "$BUILD_DIR"
 mkdir -p "$CACHE_DIR"
 mkdir -p "$IMAGES_DIR"
 
+# Function to extract repository URL and branch
+parse_repo_url() {
+    local full_url="$1"
+    local repo_url
+    local branch
+    
+    if [[ "$full_url" == *"#"* ]]; then
+        repo_url="${full_url%#*}"
+        branch="${full_url#*#}"
+    else
+        repo_url="$full_url"
+        branch="main"
+    fi
+    
+    echo "$repo_url"
+}
+
+parse_branch() {
+    local full_url="$1"
+    local branch
+    
+    if [[ "$full_url" == *"#"* ]]; then
+        branch="${full_url#*#}"
+    else
+        branch="main"
+    fi
+    
+    echo "$branch"
+}
+
 # Function to build container from repository
 build_container() {
     local repo_url="$1"
@@ -66,14 +96,41 @@ build_container() {
     echo "Building $container_name..."
     
     if [ "$use_custom" = "y" ] && [ -n "$repo_url" ]; then
-        echo "  Using custom repository: $repo_url"
+        local actual_repo_url
+        local branch
+        
+        actual_repo_url=$(parse_repo_url "$repo_url")
+        branch=$(parse_branch "$repo_url")
+        
+        echo "  Using custom repository: $actual_repo_url (branch: $branch)"
         
         # Clone or update repository
         if [ ! -d "$BUILD_DIR/$container_name" ]; then
-            git clone "$repo_url" "$BUILD_DIR/$container_name"
+            if ! git clone -b "$branch" "$actual_repo_url" "$BUILD_DIR/$container_name"; then
+                echo "  Warning: Failed to clone $container_name repository, using standard container"
+                build_standard_container "$container_name"
+                return 0
+            fi
         else
             cd "$BUILD_DIR/$container_name"
-            git pull origin main
+            if ! git fetch origin; then
+                echo "  Warning: Failed to fetch updates for $container_name, using standard container"
+                cd - > /dev/null 2>&1 || true
+                build_standard_container "$container_name"
+                return 0
+            fi
+            if ! git checkout "$branch"; then
+                echo "  Warning: Failed to checkout branch $branch for $container_name, using standard container"
+                cd - > /dev/null 2>&1 || true
+                build_standard_container "$container_name"
+                return 0
+            fi
+            if ! git pull origin "$branch"; then
+                echo "  Warning: Failed to pull updates for $container_name, using standard container"
+                cd - > /dev/null 2>&1 || true
+                build_standard_container "$container_name"
+                return 0
+            fi
             cd - > /dev/null 2>&1 || true
         fi
         
@@ -84,21 +141,66 @@ build_container() {
         if [ "$container_name" = "frontend" ]; then
             echo "  Building frontend assets..."
             if command -v yarn > /dev/null; then
-                yarn install --frozen-lockfile
-                yarn build
+                if ! yarn install --frozen-lockfile; then
+                    echo "  Warning: yarn install failed for frontend, using standard container"
+                    cd - > /dev/null 2>&1 || true
+                    build_standard_container "$container_name"
+                    return 0
+                fi
+                if ! yarn build; then
+                    echo "  Warning: yarn build failed for frontend, using standard container"
+                    cd - > /dev/null 2>&1 || true
+                    build_standard_container "$container_name"
+                    return 0
+                fi
             else
                 echo "  Warning: yarn not found, skipping frontend build"
             fi
         fi
         
         # Build Docker image
-        docker build -t "smartelligent/$container_name:latest" .
+        echo "  Building Docker image for $container_name..."
+        
+        # Set BUILD_FROM argument for the Docker build
+        local build_from_arg=""
+        case "$container_name" in
+            "core")
+                build_from_arg="--build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19"
+                ;;
+            "frontend")
+                build_from_arg="--build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19"
+                ;;
+            "supervisor")
+                build_from_arg="--build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.19"
+                ;;
+            *)
+                build_from_arg="--build-arg BUILD_FROM=alpine:3.18"
+                ;;
+        esac
+        
+        # Build with proper arguments
+        if ! docker build $build_from_arg -t "smartelligent/$container_name:latest" .; then
+            echo "  Warning: Docker build failed for $container_name, trying fallback..."
+            # Fallback: try without build args
+            if ! docker build -t "smartelligent/$container_name:latest" .; then
+                echo "  Error: Docker build failed for $container_name, using standard container"
+                cd - > /dev/null 2>&1 || true
+                build_standard_container "$container_name"
+                return 0
+            fi
+        fi
         
         # Save to tar file
         local tar_file="$IMAGES_DIR/smartelligent-$container_name.tar"
-        docker save "smartelligent/$container_name:latest" > "$tar_file"
+        if docker save "smartelligent/$container_name:latest" > "$tar_file"; then
+            echo "  Saved custom $container_name to $tar_file"
+        else
+            echo "  Warning: Failed to save $container_name image, using standard container"
+            cd - > /dev/null 2>&1 || true
+            build_standard_container "$container_name"
+            return 0
+        fi
         
-        echo "  Saved custom $container_name to $tar_file"
         cd - > /dev/null 2>&1 || true
     else
         echo "  Using standard container for $container_name"
