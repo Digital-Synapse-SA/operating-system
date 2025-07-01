@@ -68,7 +68,7 @@ parse_repo_url() {
         branch="${full_url#*#}"
     else
         repo_url="$full_url"
-        branch="main"
+        branch="master"
     fi
     
     echo "$repo_url"
@@ -81,10 +81,23 @@ parse_branch() {
     if [[ "$full_url" == *"#"* ]]; then
         branch="${full_url#*#}"
     else
-        branch="main"
+        branch="master"
     fi
     
     echo "$branch"
+}
+
+# Function to check if branch exists in repository
+branch_exists() {
+    local repo_url="$1"
+    local branch="$2"
+    
+    # Try to fetch the branch without cloning
+    if git ls-remote --heads "$repo_url" "$branch" | grep -q "$branch"; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # Function to build container from repository
@@ -103,6 +116,16 @@ build_container() {
         branch=$(parse_branch "$repo_url")
         
         echo "  Using custom repository: $actual_repo_url (branch: $branch)"
+        
+        # Check if branch exists before attempting to clone
+        if ! branch_exists "$actual_repo_url" "$branch"; then
+            echo "  Warning: Branch '$branch' does not exist in $actual_repo_url"
+            echo "  Available branches:"
+            git ls-remote --heads "$actual_repo_url" | head -10
+            echo "  Using standard container for $container_name"
+            build_standard_container "$container_name"
+            return 0
+        fi
         
         # Clone or update repository
         if [ ! -d "$BUILD_DIR/$container_name" ]; then
@@ -215,6 +238,33 @@ build_standard_container() {
     echo "  Building standard $container_name container..."
     
     case "$container_name" in
+        "core")
+            # For core, we'll use the official Home Assistant container
+            echo "  Using official Home Assistant core container"
+            docker pull "ghcr.io/home-assistant/amd64-homeassistant:stable"
+            docker tag "ghcr.io/home-assistant/amd64-homeassistant:stable" "smartelligent/core:latest"
+            docker save "smartelligent/core:latest" > "$IMAGES_DIR/smartelligent-core.tar"
+            echo "  Saved standard core to $IMAGES_DIR/smartelligent-core.tar"
+            return 0
+            ;;
+        "frontend")
+            # For frontend, we'll use the official Home Assistant frontend container
+            echo "  Using official Home Assistant frontend container"
+            docker pull "ghcr.io/home-assistant/amd64-homeassistant:stable"
+            docker tag "ghcr.io/home-assistant/amd64-homeassistant:stable" "smartelligent/frontend:latest"
+            docker save "smartelligent/frontend:latest" > "$IMAGES_DIR/smartelligent-frontend.tar"
+            echo "  Saved standard frontend to $IMAGES_DIR/smartelligent-frontend.tar"
+            return 0
+            ;;
+        "supervisor")
+            # For supervisor, we'll use the official Home Assistant supervisor container
+            echo "  Using official Home Assistant supervisor container"
+            docker pull "ghcr.io/home-assistant/amd64-hassio-supervisor:stable"
+            docker tag "ghcr.io/home-assistant/amd64-hassio-supervisor:stable" "smartelligent/supervisor:latest"
+            docker save "smartelligent/supervisor:latest" > "$IMAGES_DIR/smartelligent-supervisor.tar"
+            echo "  Saved standard supervisor to $IMAGES_DIR/smartelligent-supervisor.tar"
+            return 0
+            ;;
         "dns")
             cat > "$BUILD_DIR/dns/Dockerfile" << 'EOF'
 FROM alpine:3.18
@@ -260,9 +310,12 @@ EOF
             ;;
     esac
     
-    docker build -t "smartelligent/$container_name:latest" "$BUILD_DIR/$container_name"
-    docker save "smartelligent/$container_name:latest" > "$IMAGES_DIR/smartelligent-$container_name.tar"
-    echo "  Saved standard $container_name to $IMAGES_DIR/smartelligent-$container_name.tar"
+    # Only build Docker images for supporting containers (not main containers)
+    if [[ "$container_name" =~ ^(dns|audio|cli|multicast|observer)$ ]]; then
+        docker build -t "smartelligent/$container_name:latest" "$BUILD_DIR/$container_name"
+        docker save "smartelligent/$container_name:latest" > "$IMAGES_DIR/smartelligent-$container_name.tar"
+        echo "  Saved standard $container_name to $IMAGES_DIR/smartelligent-$container_name.tar"
+    fi
 }
 
 # Build main containers (always custom)
