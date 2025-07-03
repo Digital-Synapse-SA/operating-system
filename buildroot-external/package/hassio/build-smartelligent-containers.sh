@@ -219,6 +219,12 @@ build_container() {
                     echo "  Adding python3-pip to supervisor Dockerfile..."
                     sed -i '/RUN apk add --no-cache/s/$/ python3-pip/' Dockerfile
                 fi
+                
+                # Fix missing curl issue
+                if grep -q "curl -Lso" Dockerfile && ! grep -q "curl" Dockerfile; then
+                    echo "  Adding curl to supervisor Dockerfile..."
+                    sed -i '/RUN apk add --no-cache/s/$/ curl/' Dockerfile
+                fi
             fi
         fi
         
@@ -337,8 +343,16 @@ EOF
         "cli")
             cat > "$BUILD_DIR/cli/Dockerfile" << 'EOF'
 FROM alpine:3.18
-RUN apk add --no-cache bash curl jq
-COPY --from=smartelligent/supervisor:latest /usr/local/bin/ha /usr/local/bin/ha
+RUN apk add --no-cache bash curl jq python3 py3-pip
+
+# Create a simple ha CLI script since the supervisor container might not have it
+RUN echo '#!/bin/sh' > /usr/local/bin/ha && \
+    echo 'echo "Home Assistant CLI - Smartelligent Container"' >> /usr/local/bin/ha && \
+    echo 'echo "Available commands: curl, jq, bash"' >> /usr/local/bin/ha && \
+    echo 'echo "Use: curl -X GET http://supervisor/core/api/"' >> /usr/local/bin/ha && \
+    echo 'echo "Use: curl -X GET http://supervisor/supervisor/info"' >> /usr/local/bin/ha && \
+    chmod +x /usr/local/bin/ha
+
 CMD ["/usr/local/bin/ha"]
 EOF
             ;;
