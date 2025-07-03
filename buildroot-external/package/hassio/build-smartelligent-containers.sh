@@ -201,15 +201,50 @@ build_container() {
                 ;;
         esac
         
+        # For supervisor, try to fix common build issues
+        if [ "$container_name" = "supervisor" ]; then
+            echo "  Checking supervisor Dockerfile for compatibility..."
+            # Check if Dockerfile exists and has potential issues
+            if [ -f "Dockerfile" ]; then
+                # Backup original Dockerfile
+                cp Dockerfile Dockerfile.original
+                
+                # Try to fix common issues
+                if grep -q "pip3 install" Dockerfile; then
+                    echo "  Fixing pip3 issue in supervisor Dockerfile..."
+                    sed -i 's/pip3 install/python3 -m pip install/g' Dockerfile
+                fi
+                
+                if grep -q "pip3" Dockerfile; then
+                    echo "  Adding python3-pip to supervisor Dockerfile..."
+                    sed -i '/RUN apk add --no-cache/s/$/ python3-pip/' Dockerfile
+                fi
+            fi
+        fi
+        
         # Build with proper arguments
         if ! docker build $build_from_arg -t "smartelligent/$container_name:latest" .; then
             echo "  Warning: Docker build failed for $container_name, trying fallback..."
-            # Fallback: try without build args
-            if ! docker build -t "smartelligent/$container_name:latest" .; then
-                echo "  Error: Docker build failed for $container_name, using standard container"
-                cd - > /dev/null 2>&1 || true
-                build_standard_container "$container_name"
-                return 0
+            
+            # For supervisor, try additional fixes
+            if [ "$container_name" = "supervisor" ] && [ -f "Dockerfile.original" ]; then
+                echo "  Trying alternative supervisor build approach..."
+                cp Dockerfile.original Dockerfile
+                # Try with a simpler base image
+                if ! docker build --build-arg BUILD_FROM=alpine:3.18 -t "smartelligent/$container_name:latest" .; then
+                    echo "  Error: Docker build failed for $container_name, using standard container"
+                    cd - > /dev/null 2>&1 || true
+                    build_standard_container "$container_name"
+                    return 0
+                fi
+            else
+                # Fallback: try without build args
+                if ! docker build -t "smartelligent/$container_name:latest" .; then
+                    echo "  Error: Docker build failed for $container_name, using standard container"
+                    cd - > /dev/null 2>&1 || true
+                    build_standard_container "$container_name"
+                    return 0
+                fi
             fi
         fi
         
@@ -236,6 +271,9 @@ build_standard_container() {
     local container_name="$1"
     
     echo "  Building standard $container_name container..."
+    
+    # Create build directory if it doesn't exist
+    mkdir -p "$BUILD_DIR/$container_name"
     
     case "$container_name" in
         "core")
