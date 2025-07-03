@@ -68,7 +68,7 @@ parse_repo_url() {
         branch="${full_url#*#}"
     else
         repo_url="$full_url"
-        branch="master"
+        branch="dev-27062025"
     fi
     
     echo "$repo_url"
@@ -81,7 +81,7 @@ parse_branch() {
     if [[ "$full_url" == *"#"* ]]; then
         branch="${full_url#*#}"
     else
-        branch="master"
+        branch="dev-27062025"
     fi
     
     echo "$branch"
@@ -259,8 +259,23 @@ build_standard_container() {
         "supervisor")
             # For supervisor, we'll use the official Home Assistant supervisor container
             echo "  Using official Home Assistant supervisor container"
-            docker pull "ghcr.io/home-assistant/amd64-hassio-supervisor:stable"
-            docker tag "ghcr.io/home-assistant/amd64-hassio-supervisor:stable" "smartelligent/supervisor:latest"
+            # Try different supervisor image tags
+            if docker pull "ghcr.io/home-assistant/amd64-hassio-supervisor:stable" 2>/dev/null; then
+                docker tag "ghcr.io/home-assistant/amd64-hassio-supervisor:stable" "smartelligent/supervisor:latest"
+            elif docker pull "ghcr.io/home-assistant/amd64-hassio-supervisor:latest" 2>/dev/null; then
+                docker tag "ghcr.io/home-assistant/amd64-hassio-supervisor:latest" "smartelligent/supervisor:latest"
+            elif docker pull "ghcr.io/home-assistant/amd64-hassio-supervisor:2025.6.0" 2>/dev/null; then
+                docker tag "ghcr.io/home-assistant/amd64-hassio-supervisor:2025.6.0" "smartelligent/supervisor:latest"
+            else
+                echo "  Warning: Could not find official supervisor image, creating minimal supervisor"
+                cat > "$BUILD_DIR/supervisor/Dockerfile" << 'EOF'
+FROM alpine:3.18
+RUN apk add --no-cache python3 py3-pip
+COPY --from=smartelligent/core:latest /usr/local/bin/hass -- /usr/local/bin/hass
+CMD ["/usr/local/bin/hass"]
+EOF
+                docker build -t "smartelligent/supervisor:latest" "$BUILD_DIR/supervisor"
+            fi
             docker save "smartelligent/supervisor:latest" > "$IMAGES_DIR/smartelligent-supervisor.tar"
             echo "  Saved standard supervisor to $IMAGES_DIR/smartelligent-supervisor.tar"
             return 0

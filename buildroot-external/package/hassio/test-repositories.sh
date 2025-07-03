@@ -31,7 +31,7 @@ test_repo() {
         repo_url="${repo_url%#*}"
         branch="${repo_url#*#}"
     else
-        branch="master"
+        branch="dev-27062025"
     fi
     
     echo "  Testing $repo_var: $repo_url (branch: $branch)"
