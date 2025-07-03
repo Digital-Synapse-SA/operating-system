@@ -19,11 +19,13 @@ sudo mount -o loop,discard "${data_img}" "${build_dir}/data/"
 # Use official Docker in Docker images
 # Ideally we use the same version as Buildroot is using in case the
 # overlayfs2 storage format changes
+# Add more storage space and better storage driver options
 container=$(docker run --privileged -e DOCKER_TLS_CERTDIR="" \
 	-v "${build_dir}/data/":/data \
 	-v "${build_dir}/data/docker/":/var/lib/docker \
 	-v "${build_dir}":/build \
-	-d docker:28.0-dind --storage-driver overlay2)
+	--storage-opt size=10G \
+	-d docker:28.0-dind --storage-driver overlay2 --storage-opt overlay2.size=10G)
 
 docker exec "${container}" sh /build/dind-import-containers.sh "${channel}"
 

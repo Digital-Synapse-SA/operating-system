@@ -22,16 +22,36 @@ fi
 # Install Supervisor, plug-ins and landing page
 echo "Loading container images..."
 
-# Load images one by one with space management
-# shellcheck disable=SC2045
-for image in $(ls /build/images/*.tar); do
-	echo "Loading $(basename "${image}")..."
-	docker load --input "${image}"
+# Load images in smaller batches to manage space better
+echo "Loading container images in batches..."
+
+# Get list of images and sort by size (smallest first to avoid space issues)
+image_list=$(ls -S -r /build/images/*.tar)
+total_images=$(echo "$image_list" | wc -l)
+current=0
+
+for image in $image_list; do
+	current=$((current + 1))
+	echo "Loading $(basename "${image}")... ($current/$total_images)"
 	
-	# Clean up intermediate layers to save space
+	# Check space before loading
+	available_space=$(df /var/lib/docker | awk 'NR==2 {print $4}')
+	if [ "$available_space" -lt 1000000 ]; then
+		echo "Low space detected ($available_space KB). Cleaning up..."
+		docker system prune -f > /dev/null 2>&1 || true
+		sleep 2
+	fi
+	
+	# Load the image
+	if ! docker load --input "${image}"; then
+		echo "Failed to load $(basename "${image}"). Cleaning up and retrying..."
+		docker system prune -f > /dev/null 2>&1 || true
+		sleep 3
+		docker load --input "${image}"
+	fi
+	
+	# Clean up after each image
 	docker system prune -f > /dev/null 2>&1 || true
-	
-	# Small delay to allow filesystem to settle
 	sleep 1
 done
 
