@@ -78,6 +78,9 @@ HASSIO_OBSERVER_IMAGE = "ghcr.io/home-assistant/amd64-hassio-observer:latest"
 endif
 
 define HASSIO_CONFIGURE_CMDS
+	# Ensure scripts are executable
+	chmod +x $(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/*.sh
+	
 	# Load configuration and validate
 	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/load-smartelligent-config.sh
 	
@@ -96,6 +99,9 @@ endef
 define HASSIO_BUILD_CMDS
 	$(Q)mkdir -p $(@D)/images
 	$(Q)mkdir -p $(HASSIO_DL_DIR)
+	
+	# Ensure scripts are executable
+	chmod +x $(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/*.sh
 	
 	# Build custom Smartelligent containers
 	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-smartelligent-containers.sh \
