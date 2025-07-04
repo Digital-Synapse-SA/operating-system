@@ -1,0 +1,61 @@
+config BR2_PACKAGE_HASSIO_CUSTOM
+	bool "hassio-custom"
+	depends on BR2_PACKAGE_HOST_DOCKER_CLI
+	depends on BR2_PACKAGE_HOST_DOCKER_ENGINE
+	depends on BR2_PACKAGE_HOST_DOSFSTOOLS
+	depends on BR2_PACKAGE_HOST_E2FSPROGS
+	depends on BR2_PACKAGE_HOST_GENIMAGE
+	depends on BR2_PACKAGE_HOST_GPTFDISK
+	depends on BR2_PACKAGE_HOST_MTOOLS
+	depends on BR2_PACKAGE_HOST_RAUC
+	depends on BR2_PACKAGE_APPARMOR
+	depends on BR2_PACKAGE_APPARMOR_PROFILES
+	depends on BR2_PACKAGE_SYSTEMD_JOURNAL_REMOTE
+	depends on BR2_PACKAGE_SYSTEMD_COREDUMP
+	depends on BR2_PACKAGE_SYSTEMD_LOGIND
+	depends on BR2_PACKAGE_SYSTEMD_RANDOMSEED
+	depends on BR2_PACKAGE_AUDIT
+	depends on BR2_PACKAGE_DOCKER_CLI
+	depends on BR2_PACKAGE_DOCKER_ENGINE
+	depends on BR2_PACKAGE_RAUC
+	depends on BR2_PACKAGE_RAUC_DBUS
+	depends on BR2_PACKAGE_RAUC_NETWORK
+	depends on BR2_PACKAGE_TINI
+	depends on BR2_PACKAGE_PROCPS_NG
+	help
+	  Custom Home Assistant supervisor with rebranded images.
+	  This package provides the same functionality as the standard
+	  hassio package but allows for custom container images.
+
+if BR2_PACKAGE_HASSIO_CUSTOM
+
+config BR2_PACKAGE_HASSIO_CUSTOM_ARCH
+	string "Architecture"
+	default "amd64"
+	help
+	  Architecture for the custom hassio package.
+
+config BR2_PACKAGE_HASSIO_CUSTOM_MACHINE
+	string "Machine"
+	default "generic-x86-64"
+	help
+	  Machine type for the custom hassio package.
+
+choice
+	prompt "Release channel"
+	default BR2_PACKAGE_HASSIO_CHANNEL_STABLE
+	help
+	  Select the release channel for Home Assistant.
+
+config BR2_PACKAGE_HASSIO_CHANNEL_STABLE
+	bool "stable"
+
+config BR2_PACKAGE_HASSIO_CHANNEL_BETA
+	bool "beta"
+
+config BR2_PACKAGE_HASSIO_CHANNEL_DEV
+	bool "dev"
+
+endchoice
+
+endif 
