@@ -102,7 +102,6 @@ elif [ "$1" = "os" ]; then
     
     # Export configuration for build
     export HASSIO_CUSTOM_REGISTRY="$CUSTOM_REGISTRY"
-    export HASSIO_CUSTOM_CORE_IMAGE="${CUSTOM_MACHINE}-homeassistant"
     export HASSIO_CUSTOM_CORE_TAG="$CUSTOM_CORE_TAG"
     
     # Build the OS
