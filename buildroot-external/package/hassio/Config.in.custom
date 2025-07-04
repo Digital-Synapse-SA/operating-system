@@ -41,21 +41,4 @@ config BR2_PACKAGE_HASSIO_CUSTOM_MACHINE
 	help
 	  Machine type for the custom hassio package.
 
-choice
-	prompt "Release channel"
-	default BR2_PACKAGE_HASSIO_CHANNEL_STABLE
-	help
-	  Select the release channel for Home Assistant.
-
-config BR2_PACKAGE_HASSIO_CHANNEL_STABLE
-	bool "stable"
-
-config BR2_PACKAGE_HASSIO_CHANNEL_BETA
-	bool "beta"
-
-config BR2_PACKAGE_HASSIO_CHANNEL_DEV
-	bool "dev"
-
-endchoice
-
 endif 

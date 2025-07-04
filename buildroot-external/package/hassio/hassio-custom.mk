@@ -42,12 +42,12 @@ define HASSIO_CUSTOM_BUILD_CMDS
 	# Download standard images
 	$(foreach image,$(HASSIO_CUSTOM_CONTAINER_IMAGES_ARCH),\
 		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh \
-			$(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"
+			$(BR2_PACKAGE_HASSIO_CUSTOM_ARCH) $(BR2_PACKAGE_HASSIO_CUSTOM_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"
 	)
 	
 	# Download custom core image
 	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh \
-		$(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json core "$(HASSIO_DL_DIR)" "$(@D)/images"
+		$(BR2_PACKAGE_HASSIO_CUSTOM_ARCH) $(BR2_PACKAGE_HASSIO_CUSTOM_MACHINE) $(@D)/version.json core "$(HASSIO_DL_DIR)" "$(@D)/images"
 endef
 
 HASSIO_CUSTOM_INSTALL_IMAGES = YES
