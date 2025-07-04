@@ -67,13 +67,13 @@ This will:
 - Apply rebranding patches to the frontend
 - Build the rebranded frontend
 - Build a custom core container with the rebranded frontend
-- Tag the container as `ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.7.0-rebranded`
+- Tag the container as `ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.6.0-rebranded`
 
 ### Step 3: Push to Registry
 
 ```bash
 # Push your custom container
-docker push ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.7.0-rebranded
+docker push ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.6.0-rebranded
 ```
 
 ### Step 4: Build Operating System
@@ -137,7 +137,7 @@ Edit `frontend/src/translations/en-rebranded.json` to add more rebranded strings
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CUSTOM_REGISTRY` | `ghcr.io/digital-synapse-sa` | Container registry URL |
-| `CUSTOM_CORE_TAG` | `2025.7.0-rebranded` | Tag for your custom core image |
+| `CUSTOM_CORE_TAG` | `2025.6.0-rebranded` | Tag for your custom core image |
 | `CUSTOM_MACHINE` | `generic-x86-64` | Machine type |
 | `CUSTOM_ARCH` | `amd64` | Architecture |
 | `BUILD_TARGET` | `custom-generic_x86_64` | Buildroot target |
@@ -208,7 +208,7 @@ rm -rf output/
 docker images | grep smartelligent
 
 # Check if pushed to registry
-docker pull ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.7.0-rebranded
+docker pull ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.6.0-rebranded
 ```
 
 ### Frontend Not Rebranded

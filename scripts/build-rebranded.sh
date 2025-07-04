@@ -123,7 +123,7 @@ else
     echo ""
     echo "Environment Variables:"
     echo "  CUSTOM_REGISTRY   - Container registry (default: ghcr.io/digital-synapse-sa)"
-    echo "  CUSTOM_CORE_TAG   - Core container tag (default: 2025.7.0-rebranded)"
+    echo "  CUSTOM_CORE_TAG   - Core container tag (default: 2025.6.0-rebranded)"
     echo "  CUSTOM_MACHINE    - Machine type (default: generic-x86-64)"
     echo "  CUSTOM_ARCH       - Architecture (default: amd64)"
     echo "  BUILD_TARGET      - Build target (default: custom-generic_x86_64)"
@@ -131,7 +131,7 @@ else
     echo ""
     echo "Example full build process:"
     echo "  1. ./scripts/build-rebranded.sh containers"
-    echo "  2. docker push ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.7.0-rebranded"
+    echo "  2. docker push ghcr.io/digital-synapse-sa/generic-x86-64-homeassistant:2025.6.0-rebranded"
     echo "  3. ./scripts/build-rebranded.sh os"
 fi
 
