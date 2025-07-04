@@ -19,24 +19,11 @@ sudo mount -o loop,discard "${data_img}" "${build_dir}/data/"
 # Use official Docker in Docker images
 # Ideally we use the same version as Buildroot is using in case the
 # overlayfs2 storage format changes
-# Try vfs storage driver first, fallback to overlay2 if needed
-container=""
-if docker run --privileged -e DOCKER_TLS_CERTDIR="" \
+container=$(docker run --privileged -e DOCKER_TLS_CERTDIR="" \
 	-v "${build_dir}/data/":/data \
 	-v "${build_dir}/data/docker/":/var/lib/docker \
 	-v "${build_dir}":/build \
-	-d docker:28.0-dind --storage-driver vfs > /tmp/container_id 2>/dev/null; then
-	container=$(cat /tmp/container_id)
-	echo "Using VFS storage driver"
-else
-	echo "VFS driver failed, trying overlay2 without quotas..."
-	container=$(docker run --privileged -e DOCKER_TLS_CERTDIR="" \
-		-v "${build_dir}/data/":/data \
-		-v "${build_dir}/data/docker/":/var/lib/docker \
-		-v "${build_dir}":/build \
-		-d docker:28.0-dind --storage-driver overlay2)
-	echo "Using overlay2 storage driver"
-fi
+	-d docker:28.0-dind --storage-driver overlay2)
 
 docker exec "${container}" sh /build/dind-import-containers.sh "${channel}"
 

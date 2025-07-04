@@ -11,48 +11,14 @@ while ! docker version 2> /dev/null > /dev/null; do
 	sleep 1
 done
 
-# Check available space before loading images
-echo "Checking available space..."
-available_space=$(df /var/lib/docker | awk 'NR==2 {print $4}')
-if [ "$available_space" -lt 5000000 ]; then
-	echo "Warning: Low disk space available ($available_space KB). Cleaning up..."
-	docker system prune -a -f > /dev/null 2>&1 || true
-fi
-
 # Install Supervisor, plug-ins and landing page
 echo "Loading container images..."
 
-# Load images in smaller batches to manage space better
-echo "Loading container images in batches..."
-
-# Get list of images and sort by size (smallest first to avoid space issues)
-image_list=$(ls -S -r /build/images/*.tar)
-total_images=$(echo "$image_list" | wc -l)
-current=0
-
-for image in $image_list; do
-	current=$((current + 1))
-	echo "Loading $(basename "${image}")... ($current/$total_images)"
-	
-	# Check space before loading
-	available_space=$(df /var/lib/docker | awk 'NR==2 {print $4}')
-	if [ "$available_space" -lt 1000000 ]; then
-		echo "Low space detected ($available_space KB). Cleaning up..."
-		docker system prune -f > /dev/null 2>&1 || true
-		sleep 2
-	fi
-	
-	# Load the image
-	if ! docker load --input "${image}"; then
-		echo "Failed to load $(basename "${image}"). Cleaning up and retrying..."
-		docker system prune -f > /dev/null 2>&1 || true
-		sleep 3
-		docker load --input "${image}"
-	fi
-	
-	# Clean up after each image
-	docker system prune -f > /dev/null 2>&1 || true
-	sleep 1
+# Make sure to order images by size (largest first)
+# It seems docker load requires space during operation
+# shellcheck disable=SC2045
+for image in $(ls -S /build/images/*.tar); do
+	docker load --input "${image}"
 done
 
 # Tag the Supervisor how the OS expects it to be tagged

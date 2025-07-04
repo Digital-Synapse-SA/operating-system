@@ -20,110 +20,15 @@ endif
 
 HASSIO_CONTAINER_IMAGES_ARCH = supervisor dns audio cli multicast observer core
 
-# Load Smartelligent configuration
--include $(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/smartelligent-containers.config
-
-# Default values if config file doesn't exist
-SMARTELLIGENT_CORE_REPO ?= "https://github.com/Digital-Synapse-SA/core.git"
-SMARTELLIGENT_FRONTEND_REPO ?= "https://github.com/Digital-Synapse-SA/frontend.git"
-SMARTELLIGENT_SUPERVISOR_REPO ?= "https://github.com/Digital-Synapse-SA/supervisor.git"
-
-# Default to standard containers for supporting components
-SMARTELLIGENT_USE_CUSTOM_DNS ?= n
-SMARTELLIGENT_USE_CUSTOM_AUDIO ?= n
-SMARTELLIGENT_USE_CUSTOM_CLI ?= n
-SMARTELLIGENT_USE_CUSTOM_MULTICAST ?= n
-SMARTELLIGENT_USE_CUSTOM_OBSERVER ?= n
-
-# Default repository URLs (empty if not using custom)
-SMARTELLIGENT_DNS_REPO ?= ""
-SMARTELLIGENT_AUDIO_REPO ?= ""
-SMARTELLIGENT_CLI_REPO ?= ""
-SMARTELLIGENT_MULTICAST_REPO ?= ""
-SMARTELLIGENT_OBSERVER_REPO ?= ""
-
-# Define DNS configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_DNS),y)
-HASSIO_DNS_IMAGE = "smartelligent/dns:latest"
-else
-HASSIO_DNS_IMAGE = "ghcr.io/home-assistant/amd64-hassio-dns:latest"
-endif
-
-# Define Audio configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_AUDIO),y)
-HASSIO_AUDIO_IMAGE = "smartelligent/audio:latest"
-else
-HASSIO_AUDIO_IMAGE = "ghcr.io/home-assistant/amd64-hassio-audio:latest"
-endif
-
-# Define CLI configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_CLI),y)
-HASSIO_CLI_IMAGE = "smartelligent/cli:latest"
-else
-HASSIO_CLI_IMAGE = "ghcr.io/home-assistant/amd64-hassio-cli:latest"
-endif
-
-# Define Multicast configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_MULTICAST),y)
-HASSIO_MULTICAST_IMAGE = "smartelligent/multicast:latest"
-else
-HASSIO_MULTICAST_IMAGE = "ghcr.io/home-assistant/amd64-hassio-multicast:latest"
-endif
-
-# Define Observer configuration
-ifeq ($(SMARTELLIGENT_USE_CUSTOM_OBSERVER),y)
-HASSIO_OBSERVER_IMAGE = "smartelligent/observer:latest"
-else
-HASSIO_OBSERVER_IMAGE = "ghcr.io/home-assistant/amd64-hassio-observer:latest"
-endif
-
 define HASSIO_CONFIGURE_CMDS
-	# Ensure scripts are executable
-	chmod +x $(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/*.sh
-	
-	# Load configuration and validate
-	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/load-smartelligent-config.sh
-	
-	# Create custom version.json with Smartelligent containers
-	echo '{' > $(@D)/version.json
-	echo '  "supervisor": "smartelligent/supervisor:latest",' >> $(@D)/version.json
-	echo '  "core": "smartelligent/core:latest",' >> $(@D)/version.json
-	echo '  "dns": $(HASSIO_DNS_IMAGE),' >> $(@D)/version.json
-	echo '  "audio": $(HASSIO_AUDIO_IMAGE),' >> $(@D)/version.json
-	echo '  "cli": $(HASSIO_CLI_IMAGE),' >> $(@D)/version.json
-	echo '  "multicast": $(HASSIO_MULTICAST_IMAGE),' >> $(@D)/version.json
-	echo '  "observer": $(HASSIO_OBSERVER_IMAGE)' >> $(@D)/version.json
-	echo '}' >> $(@D)/version.json
+	# Deploy only landing page for "core" by setting version to "landingpage"
+	curl -s $(HASSIO_VERSION_URL)$(HASSIO_VERSION_CHANNEL)".json" | jq '.core = "landingpage"' > $(@D)/version.json
 endef
 
 define HASSIO_BUILD_CMDS
 	$(Q)mkdir -p $(@D)/images
 	$(Q)mkdir -p $(HASSIO_DL_DIR)
-	
-	# Ensure scripts are executable
-	chmod +x $(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/*.sh
-	
-	# Build custom Smartelligent containers
-	$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/build-smartelligent-containers.sh \
-		"$(SMARTELLIGENT_CORE_REPO)" \
-		"$(SMARTELLIGENT_FRONTEND_REPO)" \
-		"$(SMARTELLIGENT_SUPERVISOR_REPO)" \
-		"$(SMARTELLIGENT_DNS_REPO)" \
-		"$(SMARTELLIGENT_AUDIO_REPO)" \
-		"$(SMARTELLIGENT_CLI_REPO)" \
-		"$(SMARTELLIGENT_MULTICAST_REPO)" \
-		"$(SMARTELLIGENT_OBSERVER_REPO)" \
-		"$(SMARTELLIGENT_USE_CUSTOM_DNS)" \
-		"$(SMARTELLIGENT_USE_CUSTOM_AUDIO)" \
-		"$(SMARTELLIGENT_USE_CUSTOM_CLI)" \
-		"$(SMARTELLIGENT_USE_CUSTOM_MULTICAST)" \
-		"$(SMARTELLIGENT_USE_CUSTOM_OBSERVER)" \
-		"$(@D)/images" \
-		"$(HASSIO_DL_DIR)"
-	
-	# Copy custom containers to expected locations or fetch standard ones
 	$(foreach image,$(HASSIO_CONTAINER_IMAGES_ARCH),\
-		cp "$(@D)/images/smartelligent-$(image).tar" "$(HASSIO_DL_DIR)/" 2>/dev/null || \
 		$(BR2_EXTERNAL_HASSOS_PATH)/package/hassio/fetch-container-image.sh \
 			$(BR2_PACKAGE_HASSIO_ARCH) $(BR2_PACKAGE_HASSIO_MACHINE) $(@D)/version.json $(image) "$(HASSIO_DL_DIR)" "$(@D)/images"
 	)
