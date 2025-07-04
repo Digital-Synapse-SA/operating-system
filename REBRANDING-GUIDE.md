@@ -140,7 +140,7 @@ Edit `frontend/src/translations/en-rebranded.json` to add more rebranded strings
 | `CUSTOM_CORE_TAG` | `2025.6.0-rebranded` | Tag for your custom core image |
 | `CUSTOM_MACHINE` | `generic-x86-64` | Machine type |
 | `CUSTOM_ARCH` | `amd64` | Architecture |
-| `BUILD_TARGET` | `custom-generic_x86_64` | Buildroot target |
+| `BUILD_TARGET` | `custom_generic_x86_64` | Buildroot target |
 | `BRANCH_NAME` | `dev-04072025` | Git branch to use for core and frontend |
 
 ### Build Targets
@@ -153,7 +153,7 @@ cd frontend && npm run build
 cd core && docker build -t my-core .
 
 # Build the full OS
-make custom-generic_x86_64
+make custom_generic_x86_64
 
 # Build with custom registry (if different from default)
 CUSTOM_REGISTRY=my-registry.com ./scripts/build-rebranded.sh os
